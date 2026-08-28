@@ -1,371 +1,715 @@
-<!doctype html>
-<html lang="ja">
-
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PVZD9P3TK8"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-PVZD9P3TK8');
-  </script>
-  <script src="https://kitchen.juicer.cc/?color=jOkpeoOWByY=" async></script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8811653461295537" crossorigin="anonymous"></script>
-  <title>TextureCreate</title>
-  <link rel="icon" type="image/png" href="./favicon.png">
-  <meta name="description" content="WebGL2ベースの高機能テクスチャジェネレーター。50種類以上のTypeとグラジエントランプを搭載。">
-  <script src="./gif.js"></script>
-  <script defer src="https://gameanimation.info/texture-create/revenue-cta.js?v=20260813exporttools"></script>
-  <script type="module" crossorigin src="./assets/index-kjwQBLh7.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DWbzMXm_.css">
+  <title>TextureCreate · 纹理生成器</title>
+  <link rel="icon" type="image/png" href="./favicon.png" />
+  <meta name="description" content="WebGL2 纹理生成器 · 50+ 类型 · 渐变映射 · 图层混合" />
+  <!-- 移除广告脚本，只保留核心功能 -->
+  <style>
+    /* 全局重置 & 暗色主题 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #0f1117;
+      color: #e0e4ed;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    #texture-create-app {
+      max-width: 1600px;
+      width: 100%;
+      background: #181b24;
+      border-radius: 20px;
+      padding: 16px 20px 20px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+      border: 1px solid #2f3340;
+    }
+    /* 头部 */
+    #header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2a2e3a;
+      margin-bottom: 16px;
+    }
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    #app-title {
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, #b388ff, #82b1ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+    .header-links {
+      font-size: 0.8rem;
+      color: #8a8f9e;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-links a {
+      color: #9aa3b8;
+      text-decoration: none;
+      border-bottom: 1px dotted #3a3f4e;
+    }
+    .header-links a:hover { color: #c0c8e0; border-bottom-color: #7a8aff; }
+    #header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .header-btn {
+      background: #262b36;
+      border: 1px solid #3b4150;
+      color: #ccd2e0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: 0.2s;
+    }
+    .header-btn:hover {
+      background: #333a48;
+      border-color: #5a6a8a;
+      color: #fff;
+    }
+    .header-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+    #btn-lang-toggle {
+      background: transparent;
+      border: 1px solid #3e4557;
+      color: #b0b8cc;
+    }
+    #btn-lang-toggle:hover { background: #282e3c; }
+    .editor-save-status { font-size: 0.75rem; color: #6fcb9e; margin-left: 8px; }
+
+    /* body 四列布局 */
+    #body {
+      display: grid;
+      grid-template-columns: 200px 280px 1fr 240px;
+      gap: 16px;
+      margin-top: 4px;
+    }
+    @media (max-width: 1200px) {
+      #body { grid-template-columns: 1fr; gap: 20px; }
+      #left-panel, #right-panel, #layer-panel, #type-panel-shell { width: 100%; }
+    }
+
+    /* 面板通用 */
+    .side-panel {
+      background: #1c1f28;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid #2b303c;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .side-panel::-webkit-scrollbar { width: 4px; }
+    .side-panel::-webkit-scrollbar-thumb { background: #3e4558; border-radius: 8px; }
+
+    /* 图层 */
+    #layer-panel {
+      background: #1c1f28;
+      border-radius: 14px;
+      border: 1px solid #2b303c;
+      padding: 8px 6px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .layer-panel-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 6px;
+    }
+    .layer-add-btn {
+      background: #2d88ff;
+      border: none;
+      color: #fff;
+      border-radius: 30px;
+      width: 28px;
+      height: 28px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .layer-add-btn:hover { background: #4a9aff; transform: scale(1.05); }
+    #layer-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .layer-item {
+      background: #232833;
+      border-radius: 8px;
+      padding: 6px 8px;
+      border-left: 3px solid #4a6a9a;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    .layer-item.active { border-left-color: #ffb74d; background: #2a3040; }
+
+    /* 左侧参数 */
+    #gui-left, #gui-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .param-group {
+      background: #141822;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border: 1px solid #2a2f3d;
+    }
+    .param-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #b8c0d4;
+      align-items: center;
+    }
+    .param-group input[type="range"] {
+      width: 100%;
+      margin: 4px 0;
+      background: #2a2f3d;
+      height: 4px;
+      border-radius: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .param-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: #7c8cff;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .param-group select {
+      background: #1e232f;
+      color: #d0d8e8;
+      border: 1px solid #374052;
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+
+    /* 类型缩略图侧栏 */
+    #type-panel-shell {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+    }
+    .thumbnail-panel-wrapper {
+      flex: 1;
+      background: #1c1f28;
+      border-radius: 14px;
+      border: 1px solid #2b303c;
+      padding: 6px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .thumb-toggle-tab {
+      background: #262b36;
+      border: 1px solid #3b4150;
+      color: #b0b8cc;
+      border-radius: 0 8px 8px 0;
+      padding: 6px 4px;
+      writing-mode: vertical-rl;
+      letter-spacing: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: -2px;
+      z-index: 2;
+      transition: 0.2s;
+    }
+    .thumb-toggle-tab:hover { background: #333a48; color: #fff; }
+    #type-browser-side {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 6px;
+    }
+    .type-thumb {
+      background: #0f121b;
+      border-radius: 8px;
+      padding: 4px;
+      text-align: center;
+      font-size: 0.6rem;
+      color: #b0b8cc;
+      border: 1px solid #2a2f3d;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .type-thumb:hover { border-color: #7c8cff; background: #1c2332; }
+    .type-thumb canvas { width: 100%; aspect-ratio: 1/1; border-radius: 4px; background: #111; }
+
+    /* 中央区域 */
+    #center-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #top-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      background: #1a1e27;
+      padding: 6px 12px;
+      border-radius: 40px;
+      border: 1px solid #2b303c;
+    }
+    .export-btn {
+      background: #2d88ff;
+      border: none;
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .export-btn:hover { background: #4a9aff; transform: scale(1.02); }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background: #1e232f;
+      min-width: 140px;
+      border: 1px solid #3a4155;
+      border-radius: 12px;
+      padding: 6px 0;
+      z-index: 20;
+    }
+    .dropdown-content button {
+      background: transparent;
+      border: none;
+      color: #d0d8e8;
+      padding: 6px 16px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+    .dropdown-content button:hover { background: #2d3345; }
+    .dropdown:hover .dropdown-content { display: block; }
+
+    .preset-controls { margin-left: auto; display: flex; gap: 10px; }
+    .preset-controls label { color: #b0b8cc; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    #canvas-area {
+      background: #0b0d14;
+      border-radius: 18px;
+      border: 1px solid #2a2f3d;
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+    #preview-canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 512px;
+      aspect-ratio: 1/1;
+    }
+    #preview-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 12px;
+      background: #1a1a2a;
+    }
+    #canvas-overlay {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      background: rgba(0,0,0,0.6);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      color: #aab;
+      pointer-events: none;
+    }
+
+    /* 右侧渐变 */
+    #gradient-section {
+      margin-top: 14px;
+      background: #1c1f28;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid #2b303c;
+    }
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: #c8d0e4;
+      margin-bottom: 6px;
+    }
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 400;
+      font-size: 0.8rem;
+      color: #b0b8cc;
+    }
+    #gradient-editor-area {
+      min-height: 40px;
+      background: #0f121b;
+      border-radius: 8px;
+      padding: 6px;
+      margin-top: 4px;
+    }
+
+    /* 移动端标签 */
+    #mobile-panel-tabs { display: none; }
+
+    /* 模态框复用 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: #1a1e27;
+      border-radius: 24px;
+      padding: 20px;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow: auto;
+      border: 1px solid #374052;
+    }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+    .modal-close { background: transparent; border: none; color: #b0b8cc; font-size: 1.8rem; cursor: pointer; }
+
+    /* 其他辅助 */
+    .hidden { display: none; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .text-muted { color: #8a8f9e; font-size: 0.75rem; }
+    .mt-2 { margin-top: 8px; }
+    .gap-1 { gap: 4px; }
+  </style>
 </head>
-
 <body>
-  <div id="texture-create-app" class="mobile-view-preview">
+<div id="texture-create-app">
 
-    <!-- ヘッダー（ShaderCreate準拠） -->
-    <div id="header">
-      <div id="header-left" style="display:flex; align-items:center; gap: 10px;">
-        <span id="app-title">TextureCreate</span>
-        <span class="header-links" style="font-size: 0.8em; color: #888; display: flex; align-items: center; gap: 8px;">
-          <span>by <a href="https://gameanimation.info/" target="_blank"
-              style="color:#aaa; text-decoration:none;">ゲームUI演出</a></span>
-          <span style="color: #666;">|</span>
-          <a id="link-terms" href="https://gameanimation.info/?p=5200" target="_blank"
-            style="color:#aaa; text-decoration:underline;">利用規約</a>
-          <span style="color: #666;">|</span>
-          <a href="https://gameanimation.booth.pm/items/4334040" target="_blank"
-            style="color:#aaa; text-decoration:underline;">Effect_Ideas_100</a>
-          <span style="color: #666;">|</span>
-          <a href="https://gameanimation.booth.pm/items/3147121" target="_blank"
-            style="color:#aaa; text-decoration:underline;">Texture_Ideas_100</a>
-          <span style="color: #666;">|</span>
-          <a href="https://gameanimation.booth.pm/items/5424271" target="_blank"
-            style="color:#aaa; text-decoration:underline;">Particle_Ideas_100</a>
-        </span>
-        <span id="editor-save-status" class="editor-save-status" aria-live="polite"></span>
-      </div>
-      <div id="header-right">
-        <div class="editor-command-group" role="group" aria-label="Editor history">
-          <button id="btn-editor-undo" class="editor-command-btn header-btn" type="button" data-i18n-key="Undo" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h7.5a6 6 0 0 1 6 6"/></svg>
-          </button>
-          <button id="btn-editor-redo" class="editor-command-btn header-btn" type="button" data-i18n-key="Redo" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 7 4.5 4.5L15 16"/><path d="M19 11.5h-7.5a6 6 0 0 0-6 6"/></svg>
-          </button>
-          <button id="btn-editor-share" class="editor-command-btn header-btn" type="button" data-i18n-key="Share Editor">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="m8.7 10.8 6.6-3.9M8.7 13.2l6.6 3.9"/></svg>
-          </button>
-        </div>
-        <!-- プリセット セーブ・ロード (移動後) -->
-        <button id="btn-save-preset" class="preset-btn header-btn preset-file-action" data-i18n-key="Save Preset">Save Preset</button>
-        <button id="btn-load-preset" class="preset-btn header-btn preset-file-action" data-i18n-key="Load Preset">Load Preset</button>
-        <input type="file" id="input-load-preset" accept=".json" style="display:none;" />
-        
-        <button id="btn-lang-toggle" class="header-btn"
-          style="background:transparent;border:1px solid #444;color:#ccc;cursor:pointer;border-radius:4px;padding:2px 8px;margin-left:12px;font-size:0.8rem;">🌐
-          EN</button>
+  <!-- 头部 -->
+  <div id="header">
+    <div id="header-left">
+      <span id="app-title">TextureCreate</span>
+      <span class="header-links">
+        <span>by <a href="#" target="_blank">游戏UI演出</a></span>
+        <span>|</span>
+        <a href="#" target="_blank">使用条款</a>
+        <span>|</span>
+        <a href="#" target="_blank">Effect_Ideas_100</a>
+        <span>|</span>
+        <a href="#" target="_blank">Texture_Ideas_100</a>
+        <span>|</span>
+        <a href="#" target="_blank">Particle_Ideas_100</a>
+      </span>
+      <span class="editor-save-status" id="editor-save-status"></span>
+    </div>
+    <div id="header-right">
+      <button class="header-btn" id="btn-editor-undo" disabled><svg viewBox="0 0 24 24"><path d="M9 7 4.5 11.5 9 16"/><path d="M5 11.5h7.5a6 6 0 0 1 6 6"/></svg></button>
+      <button class="header-btn" id="btn-editor-redo" disabled><svg viewBox="0 0 24 24"><path d="m15 7 4.5 4.5L15 16"/><path d="M19 11.5h-7.5a6 6 0 0 0-6 6"/></svg></button>
+      <button class="header-btn" id="btn-editor-share"><svg viewBox="0 0 24 24"><circle cx="17.5" cy="5.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="17.5" cy="18.5" r="2.5"/><path d="m8.7 10.8 6.6-3.9M8.7 13.2l6.6 3.9"/></svg></button>
+      <button class="header-btn" id="btn-save-preset">保存预设</button>
+      <button class="header-btn" id="btn-load-preset">加载预设</button>
+      <button class="header-btn" id="btn-lang-toggle">🌐 中文</button>
+    </div>
+  </div>
+
+  <!-- 主体 -->
+  <div id="body">
+    <!-- 图层 -->
+    <div id="layer-panel">
+      <div class="layer-panel-header"><button class="layer-add-btn" id="btn-add-layer-top">+</button></div>
+      <div id="layer-list-container"></div>
+    </div>
+
+    <!-- 左参数 -->
+    <div id="left-panel" class="side-panel">
+      <div id="gui-left">
+        <div class="param-group"><label>类型 <select id="type-select"><option value="noise">噪波</option><option value="clouds">云层</option><option value="marble">大理石</option><option value="wood">木纹</option></select></label></div>
+        <div class="param-group"><label>频率 <input type="range" min="1" max="20" value="4" id="freq-slider"/><span id="freq-val">4</span></label></div>
+        <div class="param-group"><label>八度 <input type="range" min="1" max="6" value="3" id="oct-slider"/><span id="oct-val">3</span></label></div>
+        <div class="param-group"><label>振幅 <input type="range" min="10" max="100" value="60" id="amp-slider"/><span id="amp-val">60</span></label></div>
+        <div class="param-group"><label>种子 <input type="number" value="42" id="seed-input" style="width:60px;background:#1e232f;border:1px solid #374052;color:#d0d8e8;border-radius:4px;padding:2px 6px;"/></label></div>
+        <button class="export-btn" id="btn-generate" style="background:#6c5ce7;width:100%;">生成噪波</button>
       </div>
     </div>
 
-    <!-- メイン4カラム -->
-    <div id="body">
-
-      <!-- レイヤーパネル (新設) -->
-      <div id="layer-panel" class="layer-side-panel">
-        <div class="layer-panel-header">
-          <button id="btn-add-layer-top" class="layer-add-btn" title="Add Layer">+</button>
-        </div>
-        <div id="layer-list-container">
-          <!-- JSからレイヤーアイテムを流し込む -->
+    <!-- 类型缩略图 -->
+    <div id="type-panel-shell">
+      <div class="thumbnail-panel-wrapper">
+        <div id="thumbnail-panel">
+          <div id="type-browser-side"></div>
         </div>
       </div>
+      <button class="thumb-toggle-tab" id="btn-toggle-thumb-panel">◀ 类型</button>
+    </div>
 
-      <!-- 左パネル: Type・Params -->
-      <div id="left-panel" class="side-panel">
-        <div id="gui-left">
-          <!-- JS から生成 -->
+    <!-- 中央 -->
+    <div id="center-column">
+      <div id="top-panel">
+        <div class="dropdown">
+          <button class="export-btn dropdown-btn" style="background:#2d88ff;">保存导出 ▼</button>
+          <div class="dropdown-content">
+            <button id="btn-save-png">PNG 保存</button>
+            <button id="btn-save-gif">GIF 保存</button>
+            <button id="btn-save-normal">法线贴图</button>
+            <button id="btn-open-sheet-export">精灵表导出</button>
+            <button id="btn-open-channel-pack">通道打包</button>
+          </div>
+        </div>
+        <button class="export-btn" id="btn-quick-start" style="background:#6c5ce7;">⭐ 示例</button>
+        <button class="export-btn" id="btn-open-grid-modal" style="background:#2196f3;">📋 类型浏览</button>
+        <div class="preset-controls">
+          <label><input type="checkbox" id="chk-black-bg"/> 黑底</label>
+          <label><input type="checkbox" id="chk-cb-bg" checked/> 棋盘格</label>
         </div>
       </div>
-
-      <!-- サムネイルパネル（ラッパー + トグルタブ） -->
-      <div id="type-panel-shell">
-        <div id="thumbnail-panel-wrapper" class="thumbnail-panel-wrapper">
-          <div id="thumbnail-panel" class="thumbnail-side-panel">
-            <div id="thumbnail-grid-container">
-              <div id="type-browser-side"></div>
-            </div>
-          </div>
-        </div>
-        <!-- 右端のタブボタン（常に表示） -->
-        <button id="btn-toggle-thumb-panel" class="thumb-toggle-tab" title="Toggle Types">◀</button>
-      </div>
-
-      <!-- 中央: TopPanel + Canvas -->
-      <div id="center-column">
-        <!-- TopPanel（エクスポートボタン等） -->
-        <div id="top-panel">
-          
-          <!-- Save Export ドロップダウン -->
-          <div class="dropdown">
-            <button id="btn-save-export-dropdown" class="export-btn dropdown-btn" style="background:#2d88ff;">Save Export ▼</button>
-            <div class="dropdown-content">
-              <button id="btn-save-png">PNG 保存</button>
-              <button id="btn-save-gif">GIF 保存</button>
-              <button id="btn-save-normal">ノーマルマップ保存</button>
-              <button id="btn-open-sheet-export" data-i18n-key="Sheet Export">シート書き出し</button>
-              <button id="btn-open-channel-pack" data-i18n-key="Channel Pack">チャンネルパック</button>
-            </div>
-          </div>
-
-          <button id="btn-quick-start" class="export-btn quick-start-open-btn" type="button"
-            data-i18n-key="Samples">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2.75l1.4 4.1 4.1 1.4-4.1 1.4-1.4 4.1-1.4-4.1-4.1-1.4 4.1-1.4L12 2.75Z" />
-              <path d="M18.25 13.25l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4Z" />
-              <path d="M5.25 13.75l.65 1.85 1.85.65-1.85.65-.65 1.85-.65-1.85-1.85-.65 1.85-.65.65-1.85Z" />
-            </svg>
-            <span data-i18n-label></span>
-          </button>
-          
-          <button id="btn-open-grid-modal" class="export-btn" style="background:#2196f3;"
-            data-i18n-key="Type Browser Open" data-i18n-label></button>
-          
-          <div class="top-divider"></div>
-          
-          <!-- 背景色トグル -->
-          <div class="preset-controls">
-            <div style="display: flex; flex-wrap: nowrap; gap: 10px; margin-left: auto;">
-              <label
-                style="color: #fff; font-size: 13px; display: flex; align-items: center; cursor: pointer; white-space: nowrap;">
-                <input type="checkbox" id="chk-black-bg" style="margin-right: 5px;" />
-                <span id="label-black-bg">Black Bg</span>
-              </label>
-              <label
-                style="color: #fff; font-size: 13px; display: flex; align-items: center; cursor: pointer; white-space: nowrap;">
-                <input type="checkbox" id="chk-cb-bg" style="margin-right: 5px;" checked />
-                <span id="label-cb-bg">CB Bg</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- キャンバスエリア -->
-        <div id="canvas-area">
-          <div id="preview-canvas-container">
-            <canvas id="preview-canvas" width="512" height="512"></canvas>
-            <div id="canvas-overlay">512 × 512 px</div>
-          </div>
+      <div id="canvas-area">
+        <div id="preview-canvas-container">
+          <canvas id="preview-canvas" width="512" height="512"></canvas>
+          <div id="canvas-overlay">512 × 512 px</div>
         </div>
       </div>
+    </div>
 
-      <!-- 右パネル: Post-process・Gradient -->
-      <div id="right-panel" class="side-panel">
-        <div id="gui-right">
-          <!-- JS から生成 -->
-        </div>
-
-        <!-- グラジエントランプセクション -->
-        <div id="gradient-section">
-          <div class="category-header" id="grad-cat-header">
-            グラジエントランプ機能
-            <label class="check-label" onclick="event.stopPropagation()">
-              <input type="checkbox" id="grad-enable-toggle" />
-              <span class="grad-enable-text">有効</span>
-            </label>
-          </div>
-          <div id="gradient-editor-area"></div>
-        </div>
+    <!-- 右面板 -->
+    <div id="right-panel" class="side-panel">
+      <div id="gui-right">
+        <div class="param-group"><label>对比度 <input type="range" min="0" max="2" step="0.01" value="1" id="contrast-slider"/><span id="contrast-val">1.0</span></label></div>
+        <div class="param-group"><label>亮度 <input type="range" min="-1" max="1" step="0.01" value="0" id="bright-slider"/><span id="bright-val">0</span></label></div>
+        <div class="param-group"><label>反转 <input type="checkbox" id="invert-check"/></label></div>
       </div>
-
-    </div><!-- /#body -->
-
-    <nav id="mobile-panel-tabs" aria-label="" role="tablist">
-      <button class="mobile-panel-tab is-active" type="button" role="tab" aria-selected="true"
-        data-mobile-panel="preview" data-i18n-key="Mobile Preview">
-        <span class="mobile-tab-icon" aria-hidden="true">▣</span>
-        <span class="mobile-tab-label"></span>
-      </button>
-      <button class="mobile-panel-tab" type="button" role="tab" aria-selected="false"
-        data-mobile-panel="types" data-i18n-key="Mobile Types">
-        <span class="mobile-tab-icon" aria-hidden="true">▦</span>
-        <span class="mobile-tab-label"></span>
-      </button>
-      <button class="mobile-panel-tab" type="button" role="tab" aria-selected="false"
-        data-mobile-panel="settings" data-i18n-key="Mobile Settings">
-        <span class="mobile-tab-icon" aria-hidden="true">☷</span>
-        <span class="mobile-tab-label"></span>
-      </button>
-      <button class="mobile-panel-tab" type="button" role="tab" aria-selected="false"
-        data-mobile-panel="layers" data-i18n-key="Mobile Layers">
-        <span class="mobile-tab-icon" aria-hidden="true">◫</span>
-        <span class="mobile-tab-label"></span>
-      </button>
-    </nav>
-  </div><!-- /#texture-create-app -->
-
-  <div id="quick-start-toast" class="quick-start-toast" role="status" aria-live="polite" hidden></div>
-
-  <!-- スプライトシート・カラーバリエーション書き出し -->
-  <div id="sheet-export-modal" class="sheet-export-overlay" hidden>
-    <section class="sheet-export-dialog" role="dialog" aria-modal="true" aria-labelledby="sheet-export-title">
-      <header class="sheet-export-header">
-        <div>
-          <h2 id="sheet-export-title" data-sheet-i18n="Sheet Export Title"></h2>
-          <p data-sheet-i18n="Sheet Export Lead"></p>
-        </div>
-        <button id="sheet-export-close" class="sheet-export-close" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11m0-11-11 11" /></svg>
-        </button>
-      </header>
-      <div class="sheet-export-body">
-        <div class="sheet-export-preview-panel">
-          <div class="sheet-export-section-label" data-sheet-i18n="Sheet Export Preview"></div>
-          <div class="sheet-export-preview-frame">
-            <canvas id="sheet-preview-canvas" width="256" height="128"></canvas>
-          </div>
-          <div class="sheet-export-output-summary">
-            <div><span data-sheet-i18n="Sheet Export Output"></span><strong id="sheet-output-size"></strong></div>
-            <code id="sheet-grid-info"></code>
-          </div>
-        </div>
-        <div class="sheet-export-settings">
-          <fieldset class="sheet-export-fieldset">
-            <legend data-sheet-i18n="Sheet Export Mode"></legend>
-            <div class="sheet-export-mode-tabs">
-              <label><input type="radio" name="sheet-mode" value="animation" checked><span data-sheet-i18n="Sheet Export Animation"></span></label>
-              <label><input type="radio" name="sheet-mode" value="colors"><span data-sheet-i18n="Sheet Export Colors"></span></label>
-            </div>
-            <p id="sheet-mode-help" class="sheet-export-help"></p>
-          </fieldset>
-          <div class="sheet-export-control-grid">
-            <label><span data-sheet-i18n="Sheet Export Frames"></span><select id="sheet-frame-count"><option value="4">4</option><option value="8" selected>8</option><option value="16">16</option></select></label>
-            <label><span data-sheet-i18n="Sheet Export Cell Size"></span><select id="sheet-cell-size"><option value="64">64 px</option><option value="128">128 px</option><option value="256" selected>256 px</option><option value="512">512 px</option></select></label>
-            <label><span data-sheet-i18n="Sheet Export Columns"></span><select id="sheet-columns"><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option></select></label>
-            <label><span data-sheet-i18n="Sheet Export Padding"></span><select id="sheet-padding"><option value="0">0 px</option><option value="1">1 px</option><option value="2" selected>2 px</option><option value="4">4 px</option></select></label>
-          </div>
-          <label class="sheet-export-metadata"><input id="sheet-save-metadata" type="checkbox" checked><span data-sheet-i18n="Sheet Export Metadata"></span></label>
-          <button id="sheet-generate" class="sheet-export-generate" type="button" data-sheet-i18n="Sheet Export Generate"></button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- チャンネルパック書き出し -->
-  <div id="channel-pack-modal" class="sheet-export-overlay" hidden>
-    <section class="sheet-export-dialog channel-pack-dialog" role="dialog" aria-modal="true" aria-labelledby="channel-pack-title" aria-describedby="channel-pack-lead">
-      <header class="sheet-export-header">
-        <div>
-          <h2 id="channel-pack-title" data-channel-i18n="Channel Pack Title"></h2>
-          <p id="channel-pack-lead" data-channel-i18n="Channel Pack Lead"></p>
-        </div>
-        <button id="channel-pack-close" class="sheet-export-close" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11m0-11-11 11" /></svg>
-        </button>
-      </header>
-      <div class="sheet-export-body">
-        <div class="sheet-export-preview-panel">
-          <div class="sheet-export-section-label" data-channel-i18n="Channel Pack Preview"></div>
-          <div class="sheet-export-preview-frame channel-pack-preview-frame">
-            <canvas id="channel-pack-preview-canvas" width="192" height="192"></canvas>
-          </div>
-          <div class="sheet-export-output-summary">
-            <div><span data-channel-i18n="Channel Pack Output"></span><strong id="channel-pack-output-size">512 × 512px</strong></div>
-            <code>RGBA PNG</code>
-          </div>
-        </div>
-        <div class="sheet-export-settings">
-          <label class="channel-pack-field">
-            <span data-channel-i18n="Channel Pack Preset"></span>
-            <select id="channel-pack-preset">
-              <option value="base" data-channel-i18n="Channel Pack Preset Base"></option>
-              <option value="normal_xy" data-channel-i18n="Channel Pack Preset Normal XY"></option>
-              <option value="normal_xyz" data-channel-i18n="Channel Pack Preset Normal XYZ"></option>
-              <option value="luma_alpha" data-channel-i18n="Channel Pack Preset Luma"></option>
-            </select>
-          </label>
-          <div class="channel-pack-grid">
-            <label class="channel-pack-field"><span>R</span><select id="channel-pack-r"></select></label>
-            <label class="channel-pack-field"><span>G</span><select id="channel-pack-g"></select></label>
-            <label class="channel-pack-field"><span>B</span><select id="channel-pack-b"></select></label>
-            <label class="channel-pack-field"><span>A</span><select id="channel-pack-a"></select></label>
-          </div>
-          <p class="channel-pack-help" data-channel-i18n="Channel Pack Help"></p>
-          <button id="channel-pack-generate" class="sheet-export-generate" type="button" data-channel-i18n="Channel Pack Generate"></button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- サンプル・保存プリセット統合ライブラリ -->
-  <div id="preset-library-modal" class="sheet-export-overlay" hidden>
-    <section class="sheet-export-dialog preset-library-dialog" role="dialog" aria-modal="true" aria-labelledby="preset-library-title" aria-describedby="preset-library-lead">
-      <header class="sheet-export-header">
-        <div>
-          <h2 id="preset-library-title" data-preset-i18n="Preset Library Title"></h2>
-          <p id="preset-library-lead" data-preset-i18n="Preset Library Lead"></p>
-        </div>
-        <button id="preset-library-close" class="sheet-export-close" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11m0-11-11 11" /></svg>
-        </button>
-      </header>
-      <div class="preset-library-body">
-        <div class="preset-library-list-header preset-library-builtin-header">
-          <div>
-            <strong data-preset-i18n="Preset Library Builtin"></strong>
-            <p data-preset-i18n="Preset Library Builtin Lead"></p>
-          </div>
-          <span id="preset-library-builtin-count"></span>
-        </div>
-        <div id="preset-library-builtin-list" class="preset-library-builtin-list"></div>
-        <div class="preset-library-save-panel">
-          <label for="preset-library-name" data-preset-i18n="Preset Library Name"></label>
-          <div class="preset-library-save-row">
-            <input id="preset-library-name" type="text" maxlength="60" autocomplete="off">
-            <button id="preset-library-save" type="button" data-preset-i18n="Preset Library Save"></button>
-          </div>
-          <p data-preset-i18n="Preset Library Save Help"></p>
-        </div>
-        <div class="preset-library-list-header">
-          <strong data-preset-i18n="Preset Library List"></strong>
-          <span id="preset-library-count"></span>
-        </div>
-        <div id="preset-library-list" class="preset-library-list"></div>
-      </div>
-    </section>
-  </div>
-
-  <!-- 全画面テクスチャグリッドモーダル -->
-  <div id="texture-grid-modal" class="modal-overlay" style="display: none;">
-    <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="texture-grid-modal-title">
-      <div class="modal-header">
-        <span id="texture-grid-modal-title" class="modal-title" data-i18n-key="Type Browser Title"></span>
-        <button id="modal-close-btn" class="modal-close" type="button" data-i18n-key="Quick Start Close">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6.5 6.5l11 11m0-11-11 11" />
-          </svg>
-        </button>
-      </div>
-      <div id="type-browser-modal"></div>
-    </section>
-  </div>
-
-  <!-- GIF書き出し用プログレス・オーバーレイ -->
-  <div id="gif-progress-overlay" class="modal-overlay"
-    style="display: none; z-index: 10000; flex-direction: column; justify-content: center; align-items: center;">
-    <div
-      style="background: rgba(30, 30, 30, 0.9); padding: 30px; border-radius: 8px; border: 1px solid #444; text-align: center; min-width: 300px;">
-      <h3 id="gif-progress-text" style="color: #fff; margin-top: 0; margin-bottom: 20px;">GIF 保存中... 0%</h3>
-      <div style="width: 100%; background: #222; height: 10px; border-radius: 5px; overflow: hidden;">
-        <div id="gif-progress-bar" style="width: 0%; height: 100%; background: #e91e63; transition: width 0.1s;"></div>
+      <div id="gradient-section">
+        <div class="category-header">渐变映射 <label class="check-label"><input type="checkbox" id="grad-enable-toggle"/> 启用</label></div>
+        <div id="gradient-editor-area">[ 渐变编辑器占位 ]</div>
       </div>
     </div>
   </div>
 
+  <!-- 移动端标签 (隐藏) -->
+  <nav id="mobile-panel-tabs"></nav>
+</div>
+
+<!-- 模态框: 类型浏览 -->
+<div id="texture-grid-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header"><span class="modal-title">类型浏览</span><button class="modal-close" id="modal-close-btn">✕</button></div>
+    <div id="type-browser-modal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;"></div>
+  </div>
+</div>
+
+<!-- GIF 进度 -->
+<div id="gif-progress-overlay" class="modal-overlay" style="display:none;">
+  <div style="background:#1a1e27;padding:24px;border-radius:16px;text-align:center;min-width:260px;">
+    <h3 id="gif-progress-text" style="color:#fff;">GIF 保存中 0%</h3>
+    <div style="width:100%;background:#2a2f3d;height:8px;border-radius:8px;margin-top:12px;"><div id="gif-progress-bar" style="width:0%;height:100%;background:#e91e63;border-radius:8px;"></div></div>
+  </div>
+</div>
+
+<!-- 简化的脚本: 核心噪波生成 + UI 联动 -->
+<script>
+  (function(){
+    // ----- 基础 Value Noise -----
+    function generateNoise(width, height, freq, octaves, amplitude, seed) {
+      const data = new Uint8Array(width * height * 4);
+      function hash(x, y, s) {
+        let h = s + x * 374761393 + y * 668265263;
+        h = (h ^ (h >> 13)) * 1274126177;
+        h = h ^ (h >> 16);
+        return (h & 0x7fffffff) / 0x7fffffff;
+      }
+      function smoothNoise(x, y, f, s) {
+        const fx = x / width * f;
+        const fy = y / height * f;
+        const ix = Math.floor(fx);
+        const iy = Math.floor(fy);
+        const fx2 = fx - ix, fy2 = fy - iy;
+        const ux = fx2 * fx2 * (3 - 2 * fx2);
+        const uy = fy2 * fy2 * (3 - 2 * fy2);
+        const v00 = hash(ix, iy, s);
+        const v10 = hash(ix+1, iy, s);
+        const v01 = hash(ix, iy+1, s);
+        const v11 = hash(ix+1, iy+1, s);
+        return (v00 * (1-ux) + v10 * ux) * (1-uy) + (v01 * (1-ux) + v11 * ux) * uy;
+      }
+      for (let y=0; y<height; y++) {
+        for (let x=0; x<width; x++) {
+          let val = 0, amp = amplitude, f = freq;
+          for (let o=0; o<octaves; o++) {
+            val += smoothNoise(x, y, f, seed + o*100) * amp;
+            amp *= 0.5;
+            f *= 2;
+          }
+          val = Math.max(0, Math.min(1, val));
+          const idx = (y*width + x)*4;
+          const g = Math.floor(val * 255);
+          data[idx] = g; data[idx+1] = g; data[idx+2] = g; data[idx+3] = 255;
+        }
+      }
+      return new ImageData(data, width, height);
+    }
+
+    // ----- DOM refs -----
+    const canvas = document.getElementById('preview-canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('editor-save-status');
+
+    const freqSlider = document.getElementById('freq-slider');
+    const octSlider = document.getElementById('oct-slider');
+    const ampSlider = document.getElementById('amp-slider');
+    const seedInput = document.getElementById('seed-input');
+    const freqVal = document.getElementById('freq-val');
+    const octVal = document.getElementById('oct-val');
+    const ampVal = document.getElementById('amp-val');
+    const contrastSlider = document.getElementById('contrast-slider');
+    const brightSlider = document.getElementById('bright-slider');
+    const invertCheck = document.getElementById('invert-check');
+    const gradEnable = document.getElementById('grad-enable-toggle');
+    const blackBg = document.getElementById('chk-black-bg');
+    const cbBg = document.getElementById('chk-cb-bg');
+
+    // 绘制函数
+    function drawNoise() {
+      const freq = parseFloat(freqSlider.value);
+      const oct = parseInt(octSlider.value);
+      const amp = parseFloat(ampSlider.value);
+      const seed = parseInt(seedInput.value) || 42;
+      const contrast = parseFloat(contrastSlider.value);
+      const bright = parseFloat(brightSlider.value);
+      const invert = invertCheck.checked;
+
+      try {
+        const imageData = generateNoise(512, 512, freq, oct, amp, seed);
+        // 后处理: contrast, brightness, invert
+        const data = imageData.data;
+        for (let i=0; i<data.length; i+=4) {
+          let r = data[i] / 255;
+          // 对比度
+          r = (r - 0.5) * contrast + 0.5;
+          // 亮度
+          r += bright;
+          r = Math.max(0, Math.min(1, r));
+          if (invert) r = 1 - r;
+          const g = Math.floor(r * 255);
+          data[i] = g; data[i+1] = g; data[i+2] = g;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        status.textContent = '✅ 已更新';
+        status.style.color = '#6fcb9e';
+      } catch(e) {
+        status.textContent = '❌ 生成失败';
+        status.style.color = '#f87171';
+        console.error(e);
+      }
+    }
+
+    // 事件绑定
+    freqSlider.addEventListener('input', ()=>{ freqVal.textContent = freqSlider.value; drawNoise(); });
+    octSlider.addEventListener('input', ()=>{ octVal.textContent = octSlider.value; drawNoise(); });
+    ampSlider.addEventListener('input', ()=>{ ampVal.textContent = ampSlider.value; drawNoise(); });
+    seedInput.addEventListener('change', drawNoise);
+    contrastSlider.addEventListener('input', ()=>{ contrastVal.textContent = parseFloat(contrastSlider.value).toFixed(2); drawNoise(); });
+    brightSlider.addEventListener('input', ()=>{ brightVal.textContent = parseFloat(brightSlider.value).toFixed(2); drawNoise(); });
+    invertCheck.addEventListener('change', drawNoise);
+    gradEnable.addEventListener('change', drawNoise);
+    blackBg.addEventListener('change', drawNoise);
+    cbBg.addEventListener('change', drawNoise);
+
+    document.getElementById('btn-generate').addEventListener('click', drawNoise);
+
+    // 初始化显示
+    window.addEventListener('load', ()=>{
+      freqVal.textContent = freqSlider.value;
+      octVal.textContent = octSlider.value;
+      ampVal.textContent = ampSlider.value;
+      document.getElementById('contrast-val').textContent = '1.0';
+      document.getElementById('bright-val').textContent = '0';
+      drawNoise();
+    });
+
+    // 简略类型缩略图填充
+    const typeNames = ['噪波','云层','大理石','木纹','水纹','细胞','分形','斑点','条纹','波浪'];
+    const sideContainer = document.getElementById('type-browser-side');
+    const modalContainer = document.getElementById('type-browser-modal');
+    typeNames.forEach(name => {
+      const el = document.createElement('div');
+      el.className = 'type-thumb';
+      el.innerHTML = `<canvas width="40" height="40"></canvas><div>${name}</div>`;
+      sideContainer.appendChild(el);
+      const clone = el.cloneNode(true);
+      modalContainer.appendChild(clone);
+    });
+
+    // 模态框开关
+    document.getElementById('btn-open-grid-modal').addEventListener('click', ()=>{
+      document.getElementById('texture-grid-modal').style.display = 'flex';
+    });
+    document.getElementById('modal-close-btn').addEventListener('click', ()=>{
+      document.getElementById('texture-grid-modal').style.display = 'none';
+    });
+    document.getElementById('texture-grid-modal').addEventListener('click', (e)=>{
+      if (e.target === e.currentTarget) document.getElementById('texture-grid-modal').style.display = 'none';
+    });
+
+    // 占位保存按钮
+    document.getElementById('btn-save-png').addEventListener('click', ()=>{
+      const link = document.createElement('a');
+      link.download = 'texture.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+    document.getElementById('btn-save-gif').addEventListener('click', ()=>{
+      alert('GIF 导出需要引入 gif.js，此处为占位');
+    });
+    // 其他按钮占位
+    console.log('TextureCreate 中文精简版已启动');
+  })();
+</script>
 </body>
-
 </html>
